@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+<h2>Settings Menu</h2>
+
+<!-- Form to add API Keys -->
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Save API Key</button>
+</form>
+
+<!-- Display the user's API keys -->
+<h3>Your API Keys</h3>
+<ul>
+    {% for key in user_keys %}
+    <li>
+        <strong>{{ key.platform }}:</strong> {{ key.api_key }}
+    </li>
+    {% empty %}
+    <li>No API keys added yet.</li>
+    {% endfor %}
+</ul>
+</div>
+{% endblock %}

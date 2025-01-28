@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %} <!-- Load the static tag library -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Social Media Assistant{% endblock %}</title>
+    <link rel="stylesheet" href="{% static '/css/styles.css' %}">
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="{% url 'create_post' %}">Create Post</a>
+            <a href="{% url 'settings_menu' %}" class="menu-icon">
+                <img src="{% static 'icons/settings-icon.png' %}" alt="Settings" style="width: 24px; height: 24px;">
+            </a>
+        </nav>
+    </header>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

@@ -1,4 +1,6 @@
 from django.db import models
+from django.contrib.auth.models import User
+
 
 class Post(models.Model):
     """
@@ -26,3 +28,48 @@ class Post(models.Model):
             str: The title of the post.
         """
         return self.title
+
+
+
+class SocialMediaAPIKey(models.Model):
+    """
+    Represents an API key for a specific social media platform associated with a user.
+
+    Attributes:
+        PLATFORM_CHOICES (list[tuple[str, str]]): Choices for supported platforms.
+        user (models.ForeignKey): A reference to the user who owns the API key.
+        platform (models.CharField): The social media platform (LinkedIn, Instagram, or Twitter).
+        api_key (models.CharField): The API key associated with the platform.
+        created_at (models.DateTimeField): Timestamp indicating when the key was created.
+    """
+    PLATFORM_CHOICES: list[tuple[str, str]] = [
+        ('LinkedIn', 'LinkedIn'),
+        ('Instagram', 'Instagram'),
+        ('Twitter', 'Twitter'),
+    ]
+
+    user: models.ForeignKey = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        help_text="The user who owns this API key.",
+    )
+    platform: models.CharField = models.CharField(
+        max_length=50,
+        choices=PLATFORM_CHOICES,
+        help_text="The platform for which this API key is valid (LinkedIn, Instagram, Twitter).",
+    )
+    api_key: models.CharField = models.CharField(
+        max_length=255,
+        help_text="The API key for accessing the social media platform.",
+    )
+    created_at: models.DateTimeField = models.DateTimeField(
+        auto_now_add=True,
+        help_text="The date and time when the API key was created.",
+    )
+
+    def __str__(self) -> str:
+        """
+        Returns:
+            str: A string representation of the API key, including the username and platform.
+        """
+        return f"{self.user.username} - {self.platform}"

@@ -1,15 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Post Created Successfully</title>
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block title %}Post Created Successfully{% endblock %}
+
+{% block content %}
     <div class="container">
         <h1>Post Created Successfully!</h1>
         <p>Your post has been created and is ready to be shared.</p>
-        <a href="/assistant/create/">Create another post</a>
+        <a href="{% url 'create_post' %}">Create another post</a>
     </div>
-</body>
-</html>
+{% endblock %}
