@@ -3,33 +3,70 @@ from django.shortcuts import render, redirect
 from .forms import PostForm,APIKeyForm
 from typing import Type
 from .models import SocialMediaAPIKey
+from utils.linkedin_connector import post_to_linkedin  # Import the LinkedIn function
+from utils.linkedin_connector import get_access_token, post_to_linkedin
+import requests
+import os
 
 
+# Load environment variables
+LINKEDIN_AUTH_URL = "https://www.linkedin.com/oauth/v2/authorization"
+REDIRECT_URI = "http://127.0.0.1:8000/assistant/linkedin/callback/"
+CLIENT_ID = os.getenv("LINKEDIN_CLIENT_ID")
+CLIENT_SECRET = os.getenv("LINKEDIN_CLIENT_SECRET")
 
-def create_post(request: HttpRequest) -> HttpResponse:
+
+def linkedin_auth(request):
     """
-    Handles the creation of a new post.
-
-    If the request method is POST, it processes the submitted form data.
-    If the form is valid, the post is saved, and the user is redirected to the success page.
-    If the request method is GET, it displays an empty form for creating a post.
-
-    Args:
-        request (HttpRequest): The HTTP request object containing request data.
-
-    Returns:
-        HttpResponse: The HTTP response object rendering the post creation form
-        or redirecting to the success page upon successful form submission.
+    Redirects the user to LinkedIn's authorization page.
     """
-    if request.method == 'POST':
+    auth_url = (
+        f"{LINKEDIN_AUTH_URL}?response_type=code"
+        f"&client_id={CLIENT_ID}&redirect_uri={REDIRECT_URI}&scope=w_member_social"
+    )
+    return redirect(auth_url)
+
+
+def linkedin_callback(request):
+    """
+    Handles LinkedIn OAuth callback and exchanges the authorization code for an access token.
+    """
+    code = request.GET.get("code")
+
+    if not code:
+        return render(request, "social_media/error.html", {"message": "Authorization failed."})
+
+    try:
+        access_token = get_access_token(code)
+        request.session["linkedin_access_token"] = access_token  # Store token in session
+        return redirect("create_post")  # Redirect to post creation page
+    except Exception as e:
+        return render(request, "social_media/error.html", {"message": str(e)})
+
+
+def create_post(request):
+    """
+    Handles post creation and optionally posts to LinkedIn.
+    """
+    if request.method == "POST":
         form = PostForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
-            return redirect('post_success')  # Redirect to a success page or the post list
+            post = form.save()
+
+            access_token = request.session.get("linkedin_access_token")
+            if access_token:
+                success = post_to_linkedin(access_token, post.content)
+                if success:
+                    print("Successfully posted to LinkedIn!")
+                else:
+                    print("Failed to post to LinkedIn.")
+
+            return redirect("post_success")
+
     else:
         form = PostForm()
 
-    return render(request, 'social_media/create_post.html', {'form': form})
+    return render(request, "social_media/create_post.html", {"form": form})
 
 
 
